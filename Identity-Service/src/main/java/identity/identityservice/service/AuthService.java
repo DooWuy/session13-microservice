@@ -1,5 +1,6 @@
 package identity.identityservice.service;
 
+import identity.identityservice.dto.LoginRequest;
 import identity.identityservice.dto.RegisterRequest;
 import identity.identityservice.dto.TokenResponse;
 import identity.identityservice.dto.UserResponse;
@@ -48,4 +49,21 @@ public class AuthService {
                 .username(user.getUsername())
                 .build();
     }
+
+    public TokenResponse login(LoginRequest request, JwtUtil jwtUtil) {
+        User user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new BadCredentialsException("Bad credentials"));
+
+        // Sử dụng BCrypt
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Bad credentials");
+        }
+
+        // Tạo JWT token
+        String token = jwtUtil.generateToken(user);
+
+        return TokenResponse.builder()
+                .token(token)
+                .username(user.getUsername())
+                .build();
 }
