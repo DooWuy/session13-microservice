@@ -1,9 +1,11 @@
 package identity.identityservice.service;
 
 import identity.identityservice.dto.RegisterRequest;
+import identity.identityservice.dto.TokenResponse;
 import identity.identityservice.dto.UserResponse;
 import identity.identityservice.entity.User;
 import identity.identityservice.repository.UserRepository;
+import identity.identityservice.security.config.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -32,6 +34,18 @@ public class AuthService {
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
                 .role(savedUser.getRole())
+                .build();
+    }
+
+    public TokenResponse generateTokenForUser(String username, JwtUtil jwtUtil) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
+
+        String token = jwtUtil.generateToken(user);
+
+        return TokenResponse.builder()
+                .token(token)
+                .username(user.getUsername())
                 .build();
     }
 }
